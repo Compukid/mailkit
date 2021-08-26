@@ -1,6 +1,11 @@
-﻿#code came from website
+﻿#original code came from website
 #https://adamtheautomator.com/powershell-email/
 #slightly modified
+
+#this variable is just a place holder in case the dll's loaded in the begining do not match the version of dotnet installed. This variable will just show the latest dotnet version installed.
+if ($iswindows -eq $true){ $latestdotnet = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -Recurse | Get-ItemProperty -Name version -ErrorAction SilentlyContinue | where-object {$_.pschildname -eq "Client" -or $_.pschildname -eq "Full"} | Sort-Object -Property version  | Select-Object version, pschildname -Last 1}
+
+#may need a way to confirm linux dot net install???
 
 Function Send-MailkitMessage {
   [CmdletBinding(
@@ -24,6 +29,14 @@ Function Send-MailkitMessage {
 
   begin{
     
+    if ($PSVersionTable.PSVersion.Major -lt 7) {
+        Write-Error "This function requires powershell version 7 or greater. Exiting function...."
+        exit
+    }
+
+    #need to load dll for both mailkit and mimekit packages.
+    #too much to write code to dynamically grab the correct .net dll so this has been hard coded
+    #If you recieve a .net error please check the $latestdotnet and change below to correct version.
     Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\MailKit.2.15.0\lib\net47\MailKit.dll"
     Add-Type -Path "C:\Program Files\PackageManagement\NuGet\Packages\MimeKit.2.15.0\lib\net47\MimeKit.dll" 
   }
